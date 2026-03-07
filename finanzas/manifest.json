@@ -1,0 +1,20 @@
+{
+  "name": "Sistema Financiero",
+  "short_name": "Finanzas",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#ffeb3b",
+  "icons": [
+    {
+      "src": "LOGO-FINANZAS.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "LOGO-FINANZAS.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
