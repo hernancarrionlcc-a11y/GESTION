@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>CONTROL PAGOS FA</title>
+
+    <link rel="icon" type="image/png" sizes="192x192" href="LOGO-FA.png?v=6" />
+    <link rel="icon" type="image/png" sizes="512x512" href="LOGO-FA.png?v=6" />
+    <link rel="apple-touch-icon" href="LOGO-FA.png?v=6" />
+
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="CONTROL PAGOS FA" />
+    <meta name="theme-color" content="#2c3e50" />
+
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background: #f0f2f5;
+        padding: 15px;
+        color: #333;
+        max-width: 600px;
+        margin: auto;
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        border-top: 4px solid #3498db;
+      }
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+        font-size: 20px;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+      }
+
+      .caja-empleado {
+        background: #e8f4f8;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        text-align: center;
+        border: 1px solid #b3e5fc;
+      }
+      .caja-empleado select {
+        border: 2px solid #3498db;
+        font-weight: bold;
+        color: #2c3e50;
+        font-size: 18px;
+        text-align: center;
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        background: white;
+      }
+
+      /* Saldo */
+      .caja-saldo {
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        color: white;
+        margin-bottom: 15px;
+        transition: 0.3s;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      .saldo-debe-local {
+        background: #27ae60;
+      }
+      .saldo-adelanto {
+        background: #e74c3c;
+      }
+      .saldo-cero {
+        background: #34495e;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      .stat {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .stat strong {
+        display: block;
+        font-size: 22px;
+        color: #2c3e50;
+        margin-top: 5px;
+      }
+      .stat small {
+        color: #777;
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: bold;
+      }
+
+      .btn-presente {
+        background: #f39c12;
+        width: 100%;
+        font-size: 18px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        color: white;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .btn-presente:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+      }
+
+      .btn-wsp {
+        background: #25d366;
+        width: 100%;
+        color: white;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 15px;
+        font-size: 16px;
+        border-radius: 8px;
+        margin-top: 10px;
+        box-shadow: 0 4px 6px rgba(37, 211, 102, 0.3);
+      }
+
+      label {
+        font-weight: bold;
+        font-size: 13px;
+        color: #555;
+        display: block;
+        margin-top: 15px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-size: 15px;
+        background: #fff;
+      }
+      input:focus,
+      select:focus {
+        border-color: #3498db;
+        outline: none;
+      }
+
+      button.btn-pago {
+        width: 100%;
+        background: #3498db;
+        color: white;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 16px;
+        font-size: 16px;
+        border-radius: 8px;
+        margin-top: 20px;
+      }
+
+      #toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #27ae60;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: bold;
+        display: none;
+        z-index: 100;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      }
+    </style>
+    <link rel="manifest" href="manifest.json" />
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("sw.js")
+            .then((reg) =>
+              console.log("Service Worker registrado con éxito", reg),
+            )
+            .catch((err) =>
+              console.warn("Error al registrar el Service Worker", err),
+            );
+        });
+      }
+    </script>
+  </head>
+  <body onload="cargarDashboard()">
+    <div id="toast">✅ Registrado correctamente</div>
+
+    <h1>Sueldos FA</h1>
+    <p
+      style="
+        text-align: center;
+        color: #ff6600;
+        font-size: 12px;
+        margin-top: -5px;
+      "
+    >
+      Asistencia y Pago de Sueldos
+    </p>
+
+    <div class="caja-empleado">
+      <label style="margin-top: 0; color: #2980b9"
+        >👤 Seleccionar Empleado:</label
+      >
+      <select id="empleadoActivo" onchange="cargarDashboard()">
+        <option value="Hernán">Hernán</option>
+        <option value="Agustín">Agustín</option>
+      </select>
+    </div>
+
+    <div class="card" style="border-top: none">
+      <button id="btnPresente" class="btn-presente" onclick="darPresente()">
+        ✋ Registrar Ingreso (Hoy)
+      </button>
+
+      <div class="grid">
+        <div class="stat">
+          <small>Días (Mes)</small><strong id="lblDias">0</strong>
+        </div>
+        <div class="stat">
+          <small>Cobrado (Mes)</small><strong id="lblMes">$ 0</strong>
+        </div>
+      </div>
+
+      <div id="cajaSaldo" class="caja-saldo saldo-cero">
+        <small
+          style="text-transform: uppercase; font-weight: bold; font-size: 11px"
+          >Estado Contable</small
+        >
+        <h3 id="lblSaldoTxt" style="margin: 5px 0; font-size: 24px">$ 0</h3>
+        <span id="lblSaldoDeta" style="font-size: 12px">Calculando...</span>
+      </div>
+
+      <button class="btn-wsp" onclick="enviarReporteWsp()">
+        📲 Enviar Cierre Diario al Jefe
+      </button>
+      <button
+        onclick="cargarDashboard()"
+        style="
+          width: 100%;
+          background: #ecf0f1;
+          border: none;
+          color: #333;
+          padding: 12px;
+          font-size: 12px;
+          border-radius: 8px;
+          margin-top: 10px;
+          font-weight: bold;
+          cursor: pointer;
+        "
+      >
+        🔄 Actualizar Pantalla
+      </button>
+    </div>
+
+    <div class="card" style="border-top: 4px solid #27ae60">
+      <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #27ae60">
+        Registrar Cobro / Retiro
+      </h2>
+
+      <label>Método de Cobro</label>
+      <select id="metodoPago" onchange="gestionarAutoCompletado()">
+        <option value="Efectivo de la Caja">
+          💵 Efectivo de la Caja del día
+        </option>
+        <option value="Mercado Pago">📱 Mercado Pago</option>
+        <option value="Producto del Local">
+          📦 Me llevo un producto (A cuenta)
+        </option>
+      </select>
+
+      <label>Concepto / Detalle</label>
+      <input
+        type="text"
+        id="concepto"
+        value="Sueldo"
+        placeholder="Ej: Sueldo / Funda A52..."
+      />
+
+      <label>Monto o Valor ($)</label>
+      <input type="number" id="monto" placeholder="0.00" />
+
+      <button class="btn-pago" id="btnGuardar" onclick="guardarPago()">
+        Registrar Salida
+      </button>
+    </div>
+
+    <script>
+      // ⚠️ PEGAR TU LINK *NUEVO* DE APPS SCRIPT ACÁ:
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbxFje0nxl5R1XWi62FdGytFzzr45uPACfZG-_GBnklkigD1kKFZdNk0nPAjWCRDIDjn/exec";
+      const TELEFONO_JEFE = "5492645674349"; // ⚠️ REEMPLAZAR POR EL NÚMERO DEL JEFE
+
+      let datosReporte = {
+        presenteHoy: false,
+        pagadoHoy: 0,
+        txtSaldo: "",
+        movimientos: [],
+      };
+
+      function mostrarToast(mensaje) {
+        const t = document.getElementById("toast");
+        t.innerText = "✅ " + mensaje;
+        t.style.display = "block";
+        setTimeout(() => (t.style.display = "none"), 3000);
+      }
+
+      function gestionarAutoCompletado() {
+        const metodo = document.getElementById("metodoPago").value;
+        const conceptoInput = document.getElementById("concepto");
+        if (metodo === "Producto del Local") {
+          conceptoInput.value = "";
+          conceptoInput.placeholder = "¿Qué producto te llevás?";
+        } else {
+          conceptoInput.value = "Sueldo";
+        }
+      }
+
+      async function darPresente() {
+        const empleado = document.getElementById("empleadoActivo").value;
+        const btn = document.getElementById("btnPresente");
+        btn.disabled = true;
+        btn.innerText = "Registrando...";
+
+        try {
+          const res = await fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify({ accion: "presente", empleado: empleado }),
+          });
+          const data = await res.json();
+
+          if (data.error) {
+            alert(data.error);
+          } else {
+            mostrarToast("Ingreso: " + data.hora);
+            await cargarDashboard();
+          }
+        } catch (e) {
+          alert("Error al conectar.");
+        } finally {
+          btn.innerText = "✋ Registrar Ingreso (Hoy)";
+        }
+      }
+
+      async function cargarDashboard() {
+        const empleado = document.getElementById("empleadoActivo").value;
+
+        try {
+          const res = await fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify({ accion: "dashboard", empleado: empleado }),
+          });
+          const data = await res.json();
+
+          if (data.error) {
+            alert("Error: " + data.error);
+            return;
+          }
+
+          // Asistencia
+          document.getElementById("lblDias").innerText = data.dias_mes;
+          const btnPresente = document.getElementById("btnPresente");
+          if (data.presente_hoy) {
+            btnPresente.disabled = true;
+            btnPresente.innerText = "✔️ Presente Registrado";
+            btnPresente.style.background = "#27ae60";
+            datosReporte.presenteHoy = true;
+          } else {
+            btnPresente.disabled = false;
+            btnPresente.innerText = "✋ Registrar Ingreso (Hoy)";
+            btnPresente.style.background = "#f39c12";
+            datosReporte.presenteHoy = false;
+          }
+
+          // Pagos
+          document.getElementById("lblMes").innerText =
+            "$ " + data.pagado_mes.toLocaleString("es-AR");
+
+          // Lógica del Saldo Contable
+          const cajaSaldo = document.getElementById("cajaSaldo");
+          const lblSaldoTxt = document.getElementById("lblSaldoTxt");
+          const lblSaldoDeta = document.getElementById("lblSaldoDeta");
+          let saldo = data.saldo_total;
+
+          lblSaldoTxt.innerText =
+            "$ " + Math.abs(saldo).toLocaleString("es-AR");
+
+          if (saldo > 0) {
+            cajaSaldo.className = "caja-saldo saldo-debe-local";
+            lblSaldoDeta.innerText = "Sueldo a favor (El local te debe)";
+            datosReporte.txtSaldo =
+              "EL LOCAL LE DEBE: $" + saldo.toLocaleString("es-AR");
+          } else if (saldo < 0) {
+            cajaSaldo.className = "caja-saldo saldo-adelanto";
+            lblSaldoDeta.innerText = "Adelanto / Pagado de más (Debés horas)";
+            datosReporte.txtSaldo =
+              "ADELANTO (DEBE HORAS): $" +
+              Math.abs(saldo).toLocaleString("es-AR");
+          } else {
+            cajaSaldo.className = "caja-saldo saldo-cero";
+            lblSaldoDeta.innerText = "Cuentas saldadas al día de hoy";
+            datosReporte.txtSaldo = "CUENTAS AL DÍA ($0)";
+          }
+
+          // Guardar para reporte de WhatsApp
+          datosReporte.pagadoHoy = data.pagado_hoy.toLocaleString("es-AR");
+          datosReporte.movimientos = data.detalle_hoy;
+        } catch (e) {
+          console.error("Error cargando dashboard");
+        }
+      }
+
+      function enviarReporteWsp() {
+        const hoy = new Date().toLocaleDateString("es-AR");
+        const empleado = document.getElementById("empleadoActivo").value;
+        // Se eliminaron los emojis de ✔️ y ❌
+        const asistenciaTxt = datosReporte.presenteHoy
+          ? "Dio el presente"
+          : "No registró ingreso";
+
+        let msj = `*REPORTE SUELDOS - FA*\n`;
+        msj += `*Empleado:* ${empleado}\n`;
+        msj += `*Fecha:* ${hoy}\n\n`;
+        msj += `*Asistencia Hoy:* ${empleado} ${asistenciaTxt}\n`;
+        msj += `*Retirado Hoy:* $${datosReporte.pagadoHoy}\n`;
+        msj += `*Estado Contable:* ${datosReporte.txtSaldo}\n\n`;
+
+        if (datosReporte.movimientos.length > 0) {
+          msj += `*Detalle de lo retirado hoy:*\n`;
+          msj += datosReporte.movimientos.join("\n");
+        } else {
+          msj += `*Detalle:* Sin retiros registrados hoy.`;
+        }
+
+        window.open(
+          `https://wa.me/${TELEFONO_JEFE}?text=${encodeURIComponent(msj)}`,
+          "_blank",
+        );
+      }
+
+      async function guardarPago() {
+        const btn = document.getElementById("btnGuardar");
+        const empleado = document.getElementById("empleadoActivo").value;
+        const metodo = document.getElementById("metodoPago").value;
+        const concepto = document.getElementById("concepto").value;
+        const monto = parseFloat(document.getElementById("monto").value);
+
+        if (!concepto || isNaN(monto) || monto <= 0)
+          return alert("Completá el detalle y el monto.");
+
+        btn.disabled = true;
+        btn.innerText = "Guardando...";
+
+        try {
+          // 1. Guardar el pago en el sistema de FA Insumos & Servicios
+          const res = await fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              accion: "pagar",
+              empleado: empleado,
+              concepto: concepto,
+              monto: monto,
+              metodo: metodo,
+            }),
+          });
+          const data = await res.json();
+
+          if (data.error) {
+            alert("Error: " + data.error);
+          } else {
+            if (metodo === "Producto del Local")
+              document.getElementById("concepto").value = "";
+            document.getElementById("monto").value = "";
+            mostrarToast("Cobro registrado");
+            await cargarDashboard();
+
+            // 2. NUEVA LÓGICA: Sincronización automática con Finanzas Personales
+            if (empleado === "Hernán") {
+              try {
+                // URL de tu App Script de Finanzas
+                const URL_FINANZAS =
+                  "https://script.google.com/macros/s/AKfycbw0pnwxXamVcl2Cg--8tRfBDQaAjCO63UuVHukNvoGJLYqb5YP8bxrNgl2GVSTToxDh/exec";
+
+                // Calcular el mes de imputación (formato YYYY-MM)
+                const f = new Date();
+                const mesStr =
+                  f.getFullYear() +
+                  "-" +
+                  String(f.getMonth() + 1).padStart(2, "0");
+
+                // Estructurar el movimiento tal como lo lee tu app de Billetera
+                const movs = [
+                  {
+                    mesImputacion: mesStr,
+                    tipo: "Ingreso",
+                    concepto: "FA: " + concepto, // Agrega "FA: " para identificar de dónde viene
+                    montoARS: monto,
+                    montoUSD: 0,
+                    cotizacion: 1,
+                    detalleCuota: "Única",
+                  },
+                ];
+
+                // Enviar datos en segundo plano sin bloquear la pantalla
+                fetch(URL_FINANZAS, {
+                  method: "POST",
+                  mode: "no-cors", // <--- ESTO ES CLAVE PARA EVITAR EL BLOQUEO
+                  headers: {
+                    "Content-Type": "text/plain;charset=utf-8", // <--- ESTO EVITA EL PREFLIGHT OPTIONS
+                  },
+                  body: JSON.stringify({
+                    accion: "registrar",
+                    movimientos: movs,
+                  }),
+                })
+                  .then((res) =>
+                    console.log("Sincronizado con Finanzas Personales."),
+                  )
+                  .catch((err) =>
+                    console.error("Error al sincronizar con Finanzas: ", err),
+                  );
+              } catch (errFinanzas) {
+                console.error(
+                  "Error al sincronizar con Finanzas: ",
+                  errFinanzas,
+                );
+              }
+            }
+          }
+        } catch (e) {
+          alert("Error al registrar.");
+        } finally {
+          btn.disabled = false;
+          btn.innerText = "Registrar Salida";
+        }
+      }
+    </script>
+  </body>
+</html>
