@@ -20,6 +20,17 @@
     <meta name="apple-mobile-web-app-title" content="CONTROL PAGOS FA" />
     <meta name="theme-color" content="#2c3e50" />
 
+    <link rel="manifest" href="manifest.json" />
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("sw.js")
+            .catch((err) => console.warn("Error SW", err));
+        });
+      }
+    </script>
+
     <style>
       body {
         font-family: "Segoe UI", Tahoma, sans-serif;
@@ -66,7 +77,6 @@
         background: white;
       }
 
-      /* Saldo */
       .caja-saldo {
         padding: 20px;
         border-radius: 12px;
@@ -128,7 +138,6 @@
         background: #95a5a6;
         cursor: not-allowed;
       }
-
       .btn-wsp {
         background: #25d366;
         width: 100%;
@@ -140,7 +149,6 @@
         font-size: 16px;
         border-radius: 8px;
         margin-top: 10px;
-        box-shadow: 0 4px 6px rgba(37, 211, 102, 0.3);
       }
 
       label {
@@ -195,137 +203,234 @@
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
       }
     </style>
-    <link rel="manifest" href="manifest.json" />
-
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("sw.js")
-            .then((reg) =>
-              console.log("Service Worker registrado con éxito", reg),
-            )
-            .catch((err) =>
-              console.warn("Error al registrar el Service Worker", err),
-            );
-        });
-      }
-    </script>
   </head>
-  <body onload="cargarDashboard()">
+  <body onload="verificarSesion()">
     <div id="toast">✅ Registrado correctamente</div>
 
-    <h1>Sueldos FA</h1>
-    <p
+    <div
+      id="pantallaLogin"
+      class="card"
       style="
+        margin-top: 10vh;
+        border-top: 4px solid #e67e22;
         text-align: center;
-        color: #ff6600;
-        font-size: 12px;
-        margin-top: -5px;
       "
     >
-      Asistencia y Pago de Sueldos
-    </p>
+      <img
+        src="LOGO-FA.png"
+        alt="FA Insumos"
+        style="width: 100px; margin-bottom: 10px"
+      />
+      <h2 style="color: #2c3e50; margin-top: 0">Ingreso al Sistema</h2>
 
-    <div class="caja-empleado">
-      <label style="margin-top: 0; color: #2980b9"
-        >👤 Seleccionar Empleado:</label
-      >
-      <select id="empleadoActivo" onchange="cargarDashboard()">
+      <label style="text-align: left">Usuario:</label>
+      <select id="loginUsuario">
         <option value="Hernán">Hernán</option>
         <option value="Agustín">Agustín</option>
       </select>
-    </div>
 
-    <div class="card" style="border-top: none">
-      <button id="btnPresente" class="btn-presente" onclick="darPresente()">
-        ✋ Registrar Ingreso (Hoy)
-      </button>
+      <label style="text-align: left">PIN de Seguridad:</label>
+      <input
+        type="password"
+        id="loginPin"
+        placeholder="****"
+        inputmode="numeric"
+        maxlength="4"
+        style="text-align: center; font-size: 24px; letter-spacing: 5px"
+      />
 
-      <div class="grid">
-        <div class="stat">
-          <small>Días (Mes)</small><strong id="lblDias">0</strong>
-        </div>
-        <div class="stat">
-          <small>Cobrado (Mes)</small><strong id="lblMes">$ 0</strong>
-        </div>
-      </div>
-
-      <div id="cajaSaldo" class="caja-saldo saldo-cero">
-        <small
-          style="text-transform: uppercase; font-weight: bold; font-size: 11px"
-          >Estado Contable</small
-        >
-        <h3 id="lblSaldoTxt" style="margin: 5px 0; font-size: 24px">$ 0</h3>
-        <span id="lblSaldoDeta" style="font-size: 12px">Calculando...</span>
-      </div>
-
-      <button class="btn-wsp" onclick="enviarReporteWsp()">
-        📲 Enviar Cierre Diario al Jefe
-      </button>
       <button
-        onclick="cargarDashboard()"
+        onclick="iniciarSesion()"
         style="
+          background: #e67e22;
+          color: white;
           width: 100%;
-          background: #ecf0f1;
+          padding: 16px;
           border: none;
-          color: #333;
-          padding: 12px;
-          font-size: 12px;
           border-radius: 8px;
-          margin-top: 10px;
           font-weight: bold;
+          font-size: 16px;
+          margin-top: 20px;
           cursor: pointer;
         "
       >
-        🔄 Actualizar Pantalla
+        Acceder
       </button>
     </div>
 
-    <div class="card" style="border-top: 4px solid #27ae60">
-      <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #27ae60">
-        Registrar Cobro / Retiro
-      </h2>
+    <div id="pantallaPrincipal" style="display: none">
+      <h1>Sueldos FA</h1>
+      <p
+        style="
+          text-align: center;
+          color: #ff6600;
+          font-size: 12px;
+          margin-top: -5px;
+        "
+      >
+        Asistencia y Pago de Sueldos
+      </p>
 
-      <label>Método de Cobro</label>
-      <select id="metodoPago" onchange="gestionarAutoCompletado()">
-        <option value="Efectivo de la Caja">
-          💵 Efectivo de la Caja del día
-        </option>
-        <option value="Mercado Pago">📱 Mercado Pago</option>
-        <option value="Producto del Local">
-          📦 Me llevo un producto (A cuenta)
-        </option>
-      </select>
+      <div class="caja-empleado">
+        <label style="margin-top: 0; color: #2980b9">👤 Sesión Activa:</label>
+        <select
+          id="empleadoActivo"
+          disabled
+          style="background: #ecf0f1; cursor: not-allowed"
+        >
+          <option value="Hernán">Hernán</option>
+          <option value="Agustín">Agustín</option>
+        </select>
+      </div>
 
-      <label>Concepto / Detalle</label>
-      <input
-        type="text"
-        id="concepto"
-        value="Sueldo"
-        placeholder="Ej: Sueldo / Funda A52..."
-      />
+      <div class="card" style="border-top: none">
+        <button id="btnPresente" class="btn-presente" onclick="darPresente()">
+          ✋ Registrar Ingreso (Hoy)
+        </button>
+        <div class="grid">
+          <div class="stat">
+            <small>Días (Mes)</small><strong id="lblDias">0</strong>
+          </div>
+          <div class="stat">
+            <small>Cobrado (Mes)</small><strong id="lblMes">$ 0</strong>
+          </div>
+        </div>
 
-      <label>Monto o Valor ($)</label>
-      <input type="number" id="monto" placeholder="0.00" />
+        <div id="cajaSaldo" class="caja-saldo saldo-cero">
+          <small
+            style="
+              text-transform: uppercase;
+              font-weight: bold;
+              font-size: 11px;
+            "
+            >Estado Contable</small
+          >
+          <h3 id="lblSaldoTxt" style="margin: 5px 0; font-size: 24px">$ 0</h3>
+          <span id="lblSaldoDeta" style="font-size: 12px">Calculando...</span>
+        </div>
 
-      <button class="btn-pago" id="btnGuardar" onclick="guardarPago()">
-        Registrar Salida
+        <button class="btn-wsp" onclick="enviarReporteWsp()">
+          📲 Enviar Cierre Diario al Jefe
+        </button>
+        <button
+          onclick="cargarDashboard()"
+          style="
+            width: 100%;
+            background: #ecf0f1;
+            border: none;
+            color: #333;
+            padding: 12px;
+            font-size: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: bold;
+            cursor: pointer;
+          "
+        >
+          🔄 Actualizar Pantalla
+        </button>
+      </div>
+
+      <div class="card" style="border-top: 4px solid #27ae60">
+        <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #27ae60">
+          Registrar Cobro / Retiro
+        </h2>
+        <label>Método de Cobro</label>
+        <select id="metodoPago" onchange="gestionarAutoCompletado()">
+          <option value="Efectivo de la Caja">
+            💵 Efectivo de la Caja del día
+          </option>
+          <option value="Mercado Pago">📱 Mercado Pago</option>
+          <option value="Producto del Local">
+            📦 Me llevo un producto (A cuenta)
+          </option>
+        </select>
+        <label>Concepto / Detalle</label>
+        <input
+          type="text"
+          id="concepto"
+          value="Sueldo"
+          placeholder="Ej: Sueldo / Funda A52..."
+        />
+        <label>Monto o Valor ($)</label>
+        <input type="number" id="monto" placeholder="0.00" />
+        <button class="btn-pago" id="btnGuardar" onclick="guardarPago()">
+          Registrar Salida
+        </button>
+      </div>
+
+      <button
+        onclick="cerrarSesion()"
+        style="
+          width: 100%;
+          background: #e74c3c;
+          color: white;
+          border: none;
+          padding: 12px;
+          border-radius: 8px;
+          font-weight: bold;
+          cursor: pointer;
+          margin-bottom: 20px;
+        "
+      >
+        Cerrar Sesión
       </button>
     </div>
 
     <script>
-      // ⚠️ PEGAR TU LINK *NUEVO* DE APPS SCRIPT ACÁ:
       const API_URL =
         "https://script.google.com/macros/s/AKfycbxFje0nxl5R1XWi62FdGytFzzr45uPACfZG-_GBnklkigD1kKFZdNk0nPAjWCRDIDjn/exec";
-      const TELEFONO_JEFE = "5492645674349"; // ⚠️ REEMPLAZAR POR EL NÚMERO DEL JEFE
-
+      const TELEFONO_JEFE = "5492645674349";
       let datosReporte = {
         presenteHoy: false,
         pagadoHoy: 0,
         txtSaldo: "",
         movimientos: [],
       };
+
+      function verificarSesion() {
+        const usuarioGuardado = localStorage.getItem("usuarioFA");
+        if (usuarioGuardado) {
+          document.getElementById("pantallaLogin").style.display = "none";
+          document.getElementById("pantallaPrincipal").style.display = "block";
+          document.getElementById("empleadoActivo").value = usuarioGuardado;
+          cargarDashboard();
+        }
+      }
+
+      async function iniciarSesion() {
+        const usuario = document.getElementById("loginUsuario").value;
+        const pin = document.getElementById("loginPin").value;
+        if (!pin) return alert("Ingresá tu PIN");
+
+        try {
+          const res = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              accion: "login",
+              empleado: usuario,
+              clave: pin,
+            }),
+          });
+          const data = await res.json();
+
+          if (data.exito) {
+            localStorage.setItem("usuarioFA", usuario);
+            verificarSesion(); // Carga el dashboard y oculta el login
+          } else {
+            alert("PIN Incorrecto ❌");
+            document.getElementById("loginPin").value = "";
+          }
+        } catch (e) {
+          alert("Error de conexión con el servidor.");
+        }
+      }
+
+      function cerrarSesion() {
+        localStorage.removeItem("usuarioFA");
+        location.reload();
+      }
 
       function mostrarToast(mensaje) {
         const t = document.getElementById("toast");
@@ -350,17 +455,15 @@
         const btn = document.getElementById("btnPresente");
         btn.disabled = true;
         btn.innerText = "Registrando...";
-
         try {
           const res = await fetch(API_URL, {
             method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ accion: "presente", empleado: empleado }),
           });
           const data = await res.json();
-
-          if (data.error) {
-            alert(data.error);
-          } else {
+          if (data.error) alert(data.error);
+          else {
             mostrarToast("Ingreso: " + data.hora);
             await cargarDashboard();
           }
@@ -373,20 +476,15 @@
 
       async function cargarDashboard() {
         const empleado = document.getElementById("empleadoActivo").value;
-
         try {
           const res = await fetch(API_URL, {
             method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ accion: "dashboard", empleado: empleado }),
           });
           const data = await res.json();
+          if (data.error) return alert("Error: " + data.error);
 
-          if (data.error) {
-            alert("Error: " + data.error);
-            return;
-          }
-
-          // Asistencia
           document.getElementById("lblDias").innerText = data.dias_mes;
           const btnPresente = document.getElementById("btnPresente");
           if (data.presente_hoy) {
@@ -401,11 +499,8 @@
             datosReporte.presenteHoy = false;
           }
 
-          // Pagos
           document.getElementById("lblMes").innerText =
             "$ " + data.pagado_mes.toLocaleString("es-AR");
-
-          // Lógica del Saldo Contable
           const cajaSaldo = document.getElementById("cajaSaldo");
           const lblSaldoTxt = document.getElementById("lblSaldoTxt");
           const lblSaldoDeta = document.getElementById("lblSaldoDeta");
@@ -413,25 +508,22 @@
 
           lblSaldoTxt.innerText =
             "$ " + Math.abs(saldo).toLocaleString("es-AR");
-
           if (saldo > 0) {
             cajaSaldo.className = "caja-saldo saldo-debe-local";
-            lblSaldoDeta.innerText = "Sueldo a favor (El local te debe)";
+            lblSaldoDeta.innerText = "Sueldo a favor";
             datosReporte.txtSaldo =
               "EL LOCAL LE DEBE: $" + saldo.toLocaleString("es-AR");
           } else if (saldo < 0) {
             cajaSaldo.className = "caja-saldo saldo-adelanto";
-            lblSaldoDeta.innerText = "Adelanto / Pagado de más (Debés horas)";
+            lblSaldoDeta.innerText = "Adelanto / Debés horas";
             datosReporte.txtSaldo =
-              "ADELANTO (DEBE HORAS): $" +
-              Math.abs(saldo).toLocaleString("es-AR");
+              "ADELANTO: $" + Math.abs(saldo).toLocaleString("es-AR");
           } else {
             cajaSaldo.className = "caja-saldo saldo-cero";
-            lblSaldoDeta.innerText = "Cuentas saldadas al día de hoy";
+            lblSaldoDeta.innerText = "Cuentas saldadas";
             datosReporte.txtSaldo = "CUENTAS AL DÍA ($0)";
           }
 
-          // Guardar para reporte de WhatsApp
           datosReporte.pagadoHoy = data.pagado_hoy.toLocaleString("es-AR");
           datosReporte.movimientos = data.detalle_hoy;
         } catch (e) {
@@ -442,25 +534,13 @@
       function enviarReporteWsp() {
         const hoy = new Date().toLocaleDateString("es-AR");
         const empleado = document.getElementById("empleadoActivo").value;
-        // Se eliminaron los emojis de ✔️ y ❌
         const asistenciaTxt = datosReporte.presenteHoy
           ? "Dio el presente"
           : "No registró ingreso";
-
-        let msj = `*REPORTE SUELDOS - FA*\n`;
-        msj += `*Empleado:* ${empleado}\n`;
-        msj += `*Fecha:* ${hoy}\n\n`;
-        msj += `*Asistencia Hoy:* ${empleado} ${asistenciaTxt}\n`;
-        msj += `*Retirado Hoy:* $${datosReporte.pagadoHoy}\n`;
-        msj += `*Estado Contable:* ${datosReporte.txtSaldo}\n\n`;
-
-        if (datosReporte.movimientos.length > 0) {
-          msj += `*Detalle de lo retirado hoy:*\n`;
-          msj += datosReporte.movimientos.join("\n");
-        } else {
-          msj += `*Detalle:* Sin retiros registrados hoy.`;
-        }
-
+        let msj = `*REPORTE SUELDOS - FA*\n*Empleado:* ${empleado}\n*Fecha:* ${hoy}\n\n*Asistencia Hoy:* ${empleado} ${asistenciaTxt}\n*Retirado Hoy:* $${datosReporte.pagadoHoy}\n*Estado Contable:* ${datosReporte.txtSaldo}\n\n`;
+        if (datosReporte.movimientos.length > 0)
+          msj += `*Detalle retirado:*\n` + datosReporte.movimientos.join("\n");
+        else msj += `*Detalle:* Sin retiros hoy.`;
         window.open(
           `https://wa.me/${TELEFONO_JEFE}?text=${encodeURIComponent(msj)}`,
           "_blank",
@@ -475,15 +555,14 @@
         const monto = parseFloat(document.getElementById("monto").value);
 
         if (!concepto || isNaN(monto) || monto <= 0)
-          return alert("Completá el detalle y el monto.");
-
+          return alert("Completá detalle y monto.");
         btn.disabled = true;
         btn.innerText = "Guardando...";
 
         try {
-          // 1. Guardar el pago en el sistema de FA Insumos & Servicios
           const res = await fetch(API_URL, {
             method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
               accion: "pagar",
               empleado: empleado,
@@ -494,35 +573,28 @@
           });
           const data = await res.json();
 
-          if (data.error) {
-            alert("Error: " + data.error);
-          } else {
+          if (data.error) alert("Error: " + data.error);
+          else {
             if (metodo === "Producto del Local")
               document.getElementById("concepto").value = "";
             document.getElementById("monto").value = "";
             mostrarToast("Cobro registrado");
             await cargarDashboard();
 
-            // 2. NUEVA LÓGICA: Sincronización automática con Finanzas Personales
             if (empleado === "Hernán") {
               try {
-                // URL de tu App Script de Finanzas
                 const URL_FINANZAS =
                   "https://script.google.com/macros/s/AKfycbw0pnwxXamVcl2Cg--8tRfBDQaAjCO63UuVHukNvoGJLYqb5YP8bxrNgl2GVSTToxDh/exec";
-
-                // Calcular el mes de imputación (formato YYYY-MM)
                 const f = new Date();
                 const mesStr =
                   f.getFullYear() +
                   "-" +
                   String(f.getMonth() + 1).padStart(2, "0");
-
-                // Estructurar el movimiento tal como lo lee tu app de Billetera
                 const movs = [
                   {
                     mesImputacion: mesStr,
                     tipo: "Ingreso",
-                    concepto: "FA: " + concepto, // Agrega "FA: " para identificar de dónde viene
+                    concepto: "FA: " + concepto,
                     montoARS: monto,
                     montoUSD: 0,
                     cotizacion: 1,
@@ -530,29 +602,16 @@
                   },
                 ];
 
-                // Enviar datos en segundo plano sin bloquear la pantalla
                 fetch(URL_FINANZAS, {
                   method: "POST",
-                  mode: "no-cors", // <--- ESTO ES CLAVE PARA EVITAR EL BLOQUEO
-                  headers: {
-                    "Content-Type": "text/plain;charset=utf-8", // <--- ESTO EVITA EL PREFLIGHT OPTIONS
-                  },
+                  headers: { "Content-Type": "text/plain;charset=utf-8" },
                   body: JSON.stringify({
                     accion: "registrar",
                     movimientos: movs,
                   }),
-                })
-                  .then((res) =>
-                    console.log("Sincronizado con Finanzas Personales."),
-                  )
-                  .catch((err) =>
-                    console.error("Error al sincronizar con Finanzas: ", err),
-                  );
+                }).then(() => console.log("Sincronizado con Billetera."));
               } catch (errFinanzas) {
-                console.error(
-                  "Error al sincronizar con Finanzas: ",
-                  errFinanzas,
-                );
+                console.error("Error Finanzas: ", errFinanzas);
               }
             }
           }
