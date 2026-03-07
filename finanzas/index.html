@@ -6,551 +6,621 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Billetera</title>
-    <link rel="icon" type="image/png" href="LOGO-FINANZAS.png" />
-    <link rel="apple-touch-icon" href="LOGO-FINANZAS.png" />
+    <title>CONTROL PAGOS FA</title>
+
+    <link rel="icon" type="image/png" sizes="192x192" href="LOGO-FA.png?v=6" />
+    <link rel="icon" type="image/png" sizes="512x512" href="LOGO-FA.png?v=6" />
+    <link rel="apple-touch-icon" href="LOGO-FA.png?v=6" />
+
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <meta name="apple-mobile-web-app-title" content="Finanzas" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="CONTROL PAGOS FA" />
+    <meta name="theme-color" content="#2c3e50" />
+
     <link rel="manifest" href="manifest.json" />
     <script>
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js");
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("sw.js")
+            .catch((err) => console.warn("Error SW", err));
+        });
       }
     </script>
+
     <style>
-      :root {
-        --banana: #ffeb3b;
-        --bg: #121212;
-        --card: #1e1e1e;
-        --text: #eeeeee;
-        --blue: #2979ff;
-      }
       body {
-        font-family: "Segoe UI", system-ui, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        margin: 0;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background: #f0f2f5;
         padding: 15px;
+        color: #333;
+        max-width: 600px;
+        margin: auto;
       }
       .card {
-        background: var(--card);
-        border-radius: 16px;
+        background: white;
         padding: 20px;
-        margin-bottom: 16px;
-        border: 1px solid #333;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        border-top: 4px solid #3498db;
       }
-      .patrimonio {
-        background: linear-gradient(135deg, #0d47a1, #1976d2);
-        border: none;
-      }
-      h1,
-      h2 {
-        margin: 0;
-        font-size: 20px;
-        color: var(--banana);
+      h1 {
         text-align: center;
-      }
-      .label {
-        font-size: 11px;
-        color: #bbb;
+        color: #2c3e50;
+        font-size: 20px;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        margin-bottom: 5px;
       }
-      .value {
-        font-size: 28px;
-        font-weight: 800;
-        margin: 4px 0 12px 0;
+
+      .caja-empleado {
+        background: #e8f4f8;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        text-align: center;
+        border: 1px solid #b3e5fc;
       }
-      .negativo {
-        color: #ff5252;
+      .caja-empleado select {
+        border: 2px solid #3498db;
+        font-weight: bold;
+        color: #2c3e50;
+        font-size: 18px;
+        text-align: center;
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        background: white;
       }
+
+      .caja-saldo {
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        color: white;
+        margin-bottom: 15px;
+        transition: 0.3s;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      .saldo-debe-local {
+        background: #27ae60;
+      }
+      .saldo-adelanto {
+        background: #e74c3c;
+      }
+      .saldo-cero {
+        background: #34495e;
+      }
+
       .grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 10px;
+        margin-bottom: 15px;
       }
-      .stat-box {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 12px;
-        border-radius: 12px;
+      .stat {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
         text-align: center;
+      }
+      .stat strong {
+        display: block;
+        font-size: 22px;
+        color: #2c3e50;
+        margin-top: 5px;
+      }
+      .stat small {
+        color: #777;
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: bold;
+      }
+
+      .btn-presente {
+        background: #f39c12;
+        width: 100%;
+        font-size: 18px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        color: white;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .btn-presente:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+      }
+      .btn-wsp {
+        background: #25d366;
+        width: 100%;
+        color: white;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 15px;
+        font-size: 16px;
+        border-radius: 8px;
+        margin-top: 10px;
+      }
+
+      label {
+        font-weight: bold;
+        font-size: 13px;
+        color: #555;
+        display: block;
+        margin-top: 15px;
       }
       input,
       select {
         width: 100%;
-        background: #2c2c2c;
-        border: 1px solid #444;
-        color: #fff;
-        padding: 14px;
-        border-radius: 10px;
-        font-size: 16px;
-        margin-top: 8px;
+        padding: 12px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
         box-sizing: border-box;
+        font-size: 15px;
+        background: #fff;
       }
-      input:focus {
-        border-color: var(--banana);
+      input:focus,
+      select:focus {
+        border-color: #3498db;
         outline: none;
       }
 
-      .switch-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: rgba(255, 255, 255, 0.05);
-        padding: 12px;
-        border-radius: 10px;
-        margin-top: 15px;
-        border: 1px dashed #555;
-      }
-      .switch-label {
-        font-size: 14px;
-        color: #ffeb3b;
+      button.btn-pago {
+        width: 100%;
+        background: #3498db;
+        color: white;
+        border: none;
         font-weight: bold;
-      }
-      .switch {
-        position: relative;
-        display: inline-block;
-        width: 44px;
-        height: 24px;
-      }
-      .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-      .slider {
-        position: absolute;
         cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #444;
-        transition: 0.4s;
-        border-radius: 24px;
-      }
-      .slider:before {
-        position: absolute;
-        content: "";
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        bottom: 3px;
-        background-color: white;
-        transition: 0.4s;
-        border-radius: 50%;
-      }
-      input:checked + .slider {
-        background-color: #00e676;
-      }
-      input:checked + .slider:before {
-        transform: translateX(20px);
+        padding: 16px;
+        font-size: 16px;
+        border-radius: 8px;
+        margin-top: 20px;
       }
 
-      button {
-        width: 100%;
-        background: var(--banana);
-        color: #000;
-        border: none;
-        padding: 18px;
-        border-radius: 10px;
-        font-size: 16px;
-        font-weight: bold;
-        margin-top: 20px;
-        cursor: pointer;
-        transition: 0.2s;
-      }
-      button:active {
-        transform: scale(0.96);
-        opacity: 0.8;
-      }
       #toast {
         position: fixed;
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background: #00e676;
-        color: #000;
+        background: #27ae60;
+        color: white;
         padding: 12px 24px;
         border-radius: 50px;
         font-weight: bold;
         display: none;
-        z-index: 1000;
-      }
-
-      /* Estilo para días laborales */
-      .work-days-box {
-        background: rgba(255, 235, 59, 0.05);
-        border: 1px solid rgba(255, 235, 59, 0.2);
-        border-radius: 12px;
-        padding: 10px;
-        margin-bottom: 15px;
-        text-align: center;
-      }
-      .work-days-val {
-        font-size: 14px;
-        font-weight: bold;
-        color: var(--banana);
-        margin-top: 2px;
+        z-index: 100;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
       }
     </style>
   </head>
-  <body onload="init()">
-    <div id="toast">¡Guardado con éxito! ✅</div>
+  <body onload="verificarSesion()">
+    <div id="toast">✅ Registrado correctamente</div>
 
-    <header style="margin-bottom: 20px; text-align: center">
+    <div
+      id="pantallaLogin"
+      class="card"
+      style="
+        margin-top: 10vh;
+        border-top: 4px solid #e67e22;
+        text-align: center;
+      "
+    >
       <img
-        src="LOGO-FINANZAS.png"
-        alt="Logo Finanzas"
-        style="width: 80px; margin-bottom: 10px"
+        src="LOGO-FA.png"
+        alt="FA Insumos"
+        style="width: 100px; margin-bottom: 10px"
       />
-      <h1>SISTEMA FINANCIERO</h1>
-    </header>
+      <h2 style="color: #2c3e50; margin-top: 0">Ingreso al Sistema</h2>
 
-    <div class="card patrimonio">
-      <div class="label" style="color: #bbdefb">Patrimonio Total</div>
-      <div class="grid" style="margin-top: 10px">
-        <div>
-          <div class="label" style="color: #90caf9">Dólares</div>
-          <div class="value" id="h_usd">U$D 0</div>
-        </div>
-        <div>
-          <div class="label" style="color: #90caf9">Pesos</div>
-          <div class="value" id="h_ars">$ 0</div>
-        </div>
-      </div>
-      <div
-        style="
-          border-top: 1px solid rgba(255, 255, 255, 0.2);
-          padding-top: 15px;
-        "
-      >
-        <input
-          type="number"
-          id="cotiSim"
-          placeholder="Coti hoy (ej: 1150)"
-          oninput="simular()"
-        />
-        <div
-          id="resSim"
-          style="
-            font-weight: bold;
-            font-size: 14px;
-            margin-top: 10px;
-            color: #00e676;
-          "
-        >
-          Total en pesos: $ 0
-        </div>
-      </div>
-    </div>
+      <label style="text-align: left">Usuario:</label>
+      <select id="loginUsuario">
+        <option value="Hernán">Hernán</option>
+        <option value="Agustín">Agustín</option>
+      </select>
 
-    <div class="card">
-      <div class="work-days-box">
-        <div class="label" style="font-size: 9px">Días Laborales (Lun-Sáb)</div>
-        <div id="displayDias" class="work-days-val">Cargando días...</div>
-      </div>
+      <label style="text-align: left">PIN de Seguridad:</label>
+      <input
+        type="password"
+        id="loginPin"
+        placeholder="****"
+        inputmode="numeric"
+        maxlength="4"
+        style="text-align: center; font-size: 24px; letter-spacing: 5px"
+      />
 
-      <div class="label" id="tituloMes">Saldo Mes Actual</div>
-      <div class="value" id="m_saldo">$ 0.00</div>
-      <div class="grid">
-        <div class="stat-box" style="border-left: 4px solid #00e676">
-          <div class="label">Ingresos</div>
-          <div id="m_ing">$ 0</div>
-        </div>
-        <div class="stat-box" style="border-left: 4px solid #ff5252">
-          <div class="label">Gastos</div>
-          <div id="m_egr">$ 0</div>
-        </div>
-      </div>
-      <div
-        class="stat-box"
-        style="margin-top: 12px; border-top: 2px solid var(--banana)"
-      >
-        <div class="label">Proyectado Mes Próximo</div>
-        <div
-          id="m_proy"
-          style="font-weight: bold; color: var(--banana); font-size: 18px"
-        >
-          $ 0
-        </div>
-      </div>
       <button
-        onclick="fetchDash()"
+        onclick="iniciarSesion()"
         style="
-          background: #333;
-          color: #fff;
-          padding: 10px;
-          margin-top: 15px;
-          font-size: 12px;
+          background: #e67e22;
+          color: white;
+          width: 100%;
+          padding: 16px;
+          border: none;
           border-radius: 8px;
+          font-weight: bold;
+          font-size: 16px;
+          margin-top: 20px;
+          cursor: pointer;
         "
       >
-        🔄 Sincronizar
+        Acceder
       </button>
     </div>
 
-    <div class="card">
-      <h2 style="font-size: 18px; margin-bottom: 10px">Nuevo Movimiento</h2>
-      <select id="tipo" onchange="toggleInputs()">
-        <option value="Egreso">Egreso (Gasto)</option>
-        <option value="Ingreso">Ingreso</option>
-        <option value="Ahorro">Ahorro</option>
-      </select>
+    <div id="pantallaPrincipal" style="display: none">
+      <h1>Sueldos FA</h1>
+      <p
+        style="
+          text-align: center;
+          color: #ff6600;
+          font-size: 12px;
+          margin-top: -5px;
+        "
+      >
+        Asistencia y Pago de Sueldos
+      </p>
 
-      <input
-        type="text"
-        id="conceptoIngresado"
-        placeholder="Concepto (ej: Pago Tarjeta)"
-      />
-
-      <select id="metodoPago">
-        <option value="Efectivo">💵 Efectivo</option>
-        <option value="Mercado Pago">📱 Mercado Pago</option>
-      </select>
-
-      <div id="boxAhorro" style="display: none">
-        <select id="moneda" onchange="toggleInputs()">
-          <option value="ARS">Pesos</option>
-          <option value="USD">Dólares</option>
+      <div class="caja-empleado">
+        <label style="margin-top: 0; color: #2980b9">👤 Sesión Activa:</label>
+        <select
+          id="empleadoActivo"
+          disabled
+          style="background: #ecf0f1; cursor: not-allowed"
+        >
+          <option value="Hernán">Hernán</option>
+          <option value="Agustín">Agustín</option>
         </select>
-        <input
-          type="number"
-          id="cotiCarga"
-          placeholder="Cotización compra"
-          style="display: none"
-        />
       </div>
 
-      <input type="number" id="monto" placeholder="Monto" />
-
-      <div id="boxCuotas">
-        <label class="label">Cuotas:</label>
-        <select id="cuotas">
-          <option value="1">1 solo pago</option>
-          <script>
-            for (let i = 2; i <= 24; i++)
-              document.write(`<option value="${i}">${i} cuotas</option>`);
-          </script>
-        </select>
-
-        <div class="switch-container">
-          <span class="switch-label">💳 ¿Mes que viene? (Tarjeta)</span>
-          <label class="switch">
-            <input type="checkbox" id="proximoMes" />
-            <span class="slider"></span>
-          </label>
+      <div class="card" style="border-top: none">
+        <button id="btnPresente" class="btn-presente" onclick="darPresente()">
+          ✋ Registrar Ingreso (Hoy)
+        </button>
+        <div class="grid">
+          <div class="stat">
+            <small>Días (Mes)</small><strong id="lblDias">0</strong>
+          </div>
+          <div class="stat">
+            <small>Cobrado (Mes)</small><strong id="lblMes">$ 0</strong>
+          </div>
         </div>
+
+        <div id="cajaSaldo" class="caja-saldo saldo-cero">
+          <small
+            style="
+              text-transform: uppercase;
+              font-weight: bold;
+              font-size: 11px;
+            "
+            >Estado Contable</small
+          >
+          <h3 id="lblSaldoTxt" style="margin: 5px 0; font-size: 24px">$ 0</h3>
+          <span id="lblSaldoDeta" style="font-size: 12px">Calculando...</span>
+        </div>
+
+        <button class="btn-wsp" onclick="enviarReporteWsp()">
+          📲 Enviar Cierre Diario al Jefe
+        </button>
+        <button
+          onclick="cargarDashboard()"
+          style="
+            width: 100%;
+            background: #ecf0f1;
+            border: none;
+            color: #333;
+            padding: 12px;
+            font-size: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: bold;
+            cursor: pointer;
+          "
+        >
+          🔄 Actualizar Pantalla
+        </button>
       </div>
 
-      <button id="btnSave" onclick="save()">Guardar en la Nube</button>
+      <div class="card" style="border-top: 4px solid #27ae60">
+        <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #27ae60">
+          Registrar Cobro / Retiro
+        </h2>
+        <label>Método de Cobro</label>
+        <select id="metodoPago" onchange="gestionarAutoCompletado()">
+          <option value="Efectivo de la Caja">
+            💵 Efectivo de la Caja del día
+          </option>
+          <option value="Mercado Pago">📱 Mercado Pago</option>
+          <option value="Producto del Local">
+            📦 Me llevo un producto (A cuenta)
+          </option>
+        </select>
+        <label>Concepto / Detalle</label>
+        <input
+          type="text"
+          id="concepto"
+          value="Sueldo"
+          placeholder="Ej: Sueldo / Funda A52..."
+        />
+        <label>Monto o Valor ($)</label>
+        <input type="number" id="monto" placeholder="0.00" />
+        <button class="btn-pago" id="btnGuardar" onclick="guardarPago()">
+          Registrar Salida
+        </button>
+      </div>
+
+      <button
+        onclick="cerrarSesion()"
+        style="
+          width: 100%;
+          background: #e74c3c;
+          color: white;
+          border: none;
+          padding: 12px;
+          border-radius: 8px;
+          font-weight: bold;
+          cursor: pointer;
+          margin-bottom: 20px;
+        "
+      >
+        Cerrar Sesión
+      </button>
     </div>
 
     <script>
-      const URL_API =
-        "https://script.google.com/macros/s/AKfycbw0pnwxXamVcl2Cg--8tRfBDQaAjCO63UuVHukNvoGJLYqb5YP8bxrNgl2GVSTToxDh/exec";
-      let totalUSD = 0;
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbxFje0nxl5R1XWi62FdGytFzzr45uPACfZG-_GBnklkigD1kKFZdNk0nPAjWCRDIDjn/exec";
+      const TELEFONO_JEFE = "5492645674349";
+      let datosReporte = {
+        presenteHoy: false,
+        pagadoHoy: 0,
+        txtSaldo: "",
+        movimientos: [],
+      };
 
-      function obtenerFeriados2026() {
-        return [
-          "2026-01-01",
-          "2026-02-16",
-          "2026-02-17",
-          "2026-03-24",
-          "2026-04-02",
-          "2026-04-03",
-          "2026-05-01",
-          "2026-05-25",
-          "2026-06-15",
-          "2026-06-20",
-          "2026-07-09",
-          "2026-08-17",
-          "2026-10-12",
-          "2026-11-23",
-          "2026-12-08",
-          "2026-12-25",
-        ];
-      }
-
-      function calcularDiasLaborales() {
-        const ahora = new Date();
-        const anio = ahora.getFullYear();
-        const mes = ahora.getMonth();
-        const feriados = obtenerFeriados2026();
-
-        let totales = 0;
-        let pasados = 0;
-        const ultimoDia = new Date(anio, mes + 1, 0).getDate();
-        const hoy = ahora.getDate();
-
-        for (let d = 1; d <= ultimoDia; d++) {
-          const fecha = new Date(anio, mes, d);
-          const diaSemana = fecha.getDay(); // 0 = Domingo
-          const fechaStr =
-            anio +
-            "-" +
-            String(mes + 1).padStart(2, "0") +
-            "-" +
-            String(d).padStart(2, "0");
-
-          // Si no es domingo (0) y no es feriado
-          if (diaSemana !== 0 && !feriados.includes(fechaStr)) {
-            totales++;
-            if (d <= hoy) pasados++;
-          }
+      function verificarSesion() {
+        const usuarioGuardado = localStorage.getItem("usuarioFA");
+        if (usuarioGuardado) {
+          document.getElementById("pantallaLogin").style.display = "none";
+          document.getElementById("pantallaPrincipal").style.display = "block";
+          document.getElementById("empleadoActivo").value = usuarioGuardado;
+          cargarDashboard();
         }
-        document.getElementById("displayDias").innerText =
-          `Días: ${pasados} / ${totales}`;
       }
 
-      function toggleInputs() {
-        const t = document.getElementById("tipo").value;
-        const m = document.getElementById("moneda").value;
-        document.getElementById("boxAhorro").style.display =
-          t === "Ahorro" ? "block" : "none";
-        document.getElementById("boxCuotas").style.display =
-          t === "Egreso" ? "block" : "none";
-        document.getElementById("boxCoti").style.display =
-          t === "Ahorro" && m === "USD" ? "block" : "none";
+      async function iniciarSesion() {
+        const usuario = document.getElementById("loginUsuario").value;
+        const pin = document.getElementById("loginPin").value;
+        if (!pin) return alert("Ingresá tu PIN");
+
+        try {
+          const res = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              accion: "login",
+              empleado: usuario,
+              clave: pin,
+            }),
+          });
+          const data = await res.json();
+
+          if (data.exito) {
+            localStorage.setItem("usuarioFA", usuario);
+            verificarSesion(); // Carga el dashboard y oculta el login
+          } else {
+            alert("PIN Incorrecto ❌");
+            document.getElementById("loginPin").value = "";
+          }
+        } catch (e) {
+          alert("Error de conexión con el servidor.");
+        }
       }
 
-      function simular() {
-        const c = parseFloat(document.getElementById("cotiSim").value) || 0;
-        document.getElementById("resSim").innerText =
-          "Total en pesos: $ " + (totalUSD * c).toLocaleString("es-AR");
+      function cerrarSesion() {
+        localStorage.removeItem("usuarioFA");
+        location.reload();
       }
 
-      function getMesStr(fecha) {
-        return (
-          fecha.getFullYear() +
-          "-" +
-          String(fecha.getMonth() + 1).padStart(2, "0")
+      function mostrarToast(mensaje) {
+        const t = document.getElementById("toast");
+        t.innerText = "✅ " + mensaje;
+        t.style.display = "block";
+        setTimeout(() => (t.style.display = "none"), 3000);
+      }
+
+      function gestionarAutoCompletado() {
+        const metodo = document.getElementById("metodoPago").value;
+        const conceptoInput = document.getElementById("concepto");
+        if (metodo === "Producto del Local") {
+          conceptoInput.value = "";
+          conceptoInput.placeholder = "¿Qué producto te llevás?";
+        } else {
+          conceptoInput.value = "Sueldo";
+        }
+      }
+
+      async function darPresente() {
+        const empleado = document.getElementById("empleadoActivo").value;
+        const btn = document.getElementById("btnPresente");
+        btn.disabled = true;
+        btn.innerText = "Registrando...";
+        try {
+          const res = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ accion: "presente", empleado: empleado }),
+          });
+          const data = await res.json();
+          if (data.error) alert(data.error);
+          else {
+            mostrarToast("Ingreso: " + data.hora);
+            await cargarDashboard();
+          }
+        } catch (e) {
+          alert("Error al conectar.");
+        } finally {
+          btn.innerText = "✋ Registrar Ingreso (Hoy)";
+        }
+      }
+
+      async function cargarDashboard() {
+        const empleado = document.getElementById("empleadoActivo").value;
+        try {
+          const res = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ accion: "dashboard", empleado: empleado }),
+          });
+          const data = await res.json();
+          if (data.error) return alert("Error: " + data.error);
+
+          document.getElementById("lblDias").innerText = data.dias_mes;
+          const btnPresente = document.getElementById("btnPresente");
+          if (data.presente_hoy) {
+            btnPresente.disabled = true;
+            btnPresente.innerText = "✔️ Presente Registrado";
+            btnPresente.style.background = "#27ae60";
+            datosReporte.presenteHoy = true;
+          } else {
+            btnPresente.disabled = false;
+            btnPresente.innerText = "✋ Registrar Ingreso (Hoy)";
+            btnPresente.style.background = "#f39c12";
+            datosReporte.presenteHoy = false;
+          }
+
+          document.getElementById("lblMes").innerText =
+            "$ " + data.pagado_mes.toLocaleString("es-AR");
+          const cajaSaldo = document.getElementById("cajaSaldo");
+          const lblSaldoTxt = document.getElementById("lblSaldoTxt");
+          const lblSaldoDeta = document.getElementById("lblSaldoDeta");
+          let saldo = data.saldo_total;
+
+          lblSaldoTxt.innerText =
+            "$ " + Math.abs(saldo).toLocaleString("es-AR");
+          if (saldo > 0) {
+            cajaSaldo.className = "caja-saldo saldo-debe-local";
+            lblSaldoDeta.innerText = "Sueldo a favor";
+            datosReporte.txtSaldo =
+              "EL LOCAL LE DEBE: $" + saldo.toLocaleString("es-AR");
+          } else if (saldo < 0) {
+            cajaSaldo.className = "caja-saldo saldo-adelanto";
+            lblSaldoDeta.innerText = "Adelanto / Debés horas";
+            datosReporte.txtSaldo =
+              "ADELANTO: $" + Math.abs(saldo).toLocaleString("es-AR");
+          } else {
+            cajaSaldo.className = "caja-saldo saldo-cero";
+            lblSaldoDeta.innerText = "Cuentas saldadas";
+            datosReporte.txtSaldo = "CUENTAS AL DÍA ($0)";
+          }
+
+          datosReporte.pagadoHoy = data.pagado_hoy.toLocaleString("es-AR");
+          datosReporte.movimientos = data.detalle_hoy;
+        } catch (e) {
+          console.error("Error cargando dashboard");
+        }
+      }
+
+      function enviarReporteWsp() {
+        const hoy = new Date().toLocaleDateString("es-AR");
+        const empleado = document.getElementById("empleadoActivo").value;
+        const asistenciaTxt = datosReporte.presenteHoy
+          ? "Dio el presente"
+          : "No registró ingreso";
+        let msj = `*REPORTE SUELDOS - FA*\n*Empleado:* ${empleado}\n*Fecha:* ${hoy}\n\n*Asistencia Hoy:* ${empleado} ${asistenciaTxt}\n*Retirado Hoy:* $${datosReporte.pagadoHoy}\n*Estado Contable:* ${datosReporte.txtSaldo}\n\n`;
+        if (datosReporte.movimientos.length > 0)
+          msj += `*Detalle retirado:*\n` + datosReporte.movimientos.join("\n");
+        else msj += `*Detalle:* Sin retiros hoy.`;
+        window.open(
+          `https://wa.me/${TELEFONO_JEFE}?text=${encodeURIComponent(msj)}`,
+          "_blank",
         );
       }
 
-      async function fetchDash() {
-        try {
-          calcularDiasLaborales(); // Actualizar días al sincronizar
-          const mesAct = getMesStr(new Date());
-          const mesProx = getMesStr(
-            new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
-          );
-          const res = await fetch(URL_API, {
-            method: "POST",
-            body: JSON.stringify({
-              accion: "dashboard",
-              mesActual: mesAct,
-              mesProximo: mesProx,
-            }),
-          });
-          const d = await res.json();
-          totalUSD = d.h_usd;
-          document.getElementById("h_usd").innerText =
-            "U$D " + d.h_usd.toLocaleString("es-AR");
-          document.getElementById("h_ars").innerText =
-            "$ " + d.h_ars.toLocaleString("es-AR");
-          const sEl = document.getElementById("m_saldo");
-          sEl.innerText =
-            (d.m_saldo < 0 ? "- " : "") +
-            "$ " +
-            Math.abs(d.m_saldo).toLocaleString("es-AR");
-          sEl.className = "value " + (d.m_saldo < 0 ? "negativo" : "");
-          document.getElementById("m_ing").innerText =
-            "$ " + d.m_ing.toLocaleString("es-AR");
-          document.getElementById("m_egr").innerText =
-            "$ " + d.m_egr.toLocaleString("es-AR");
-          document.getElementById("m_proy").innerText =
-            "$ " + d.m_proy.toLocaleString("es-AR");
-          document.getElementById("tituloMes").innerText =
-            "Saldo Mes: " + mesAct;
-          simular();
-        } catch (e) {
-          console.error("Error sincronización");
-        }
-      }
-
-      async function save() {
-        const btn = document.getElementById("btnSave");
-        const conceptoBase = document.getElementById("conceptoIngresado").value;
-        const metodoPago = document.getElementById("metodoPago").value;
+      async function guardarPago() {
+        const btn = document.getElementById("btnGuardar");
+        const empleado = document.getElementById("empleadoActivo").value;
+        const metodo = document.getElementById("metodoPago").value;
+        const concepto = document.getElementById("concepto").value;
         const monto = parseFloat(document.getElementById("monto").value);
 
-        if (!conceptoBase || isNaN(monto)) return alert("Faltan datos");
-
-        // Concatenamos el concepto con el método de pago para no modificar la base de datos
-        const concepto = conceptoBase + " (" + metodoPago + ")";
-
+        if (!concepto || isNaN(monto) || monto <= 0)
+          return alert("Completá detalle y monto.");
         btn.disabled = true;
-        btn.innerText = "Procesando...";
-        const tipo = document.getElementById("tipo").value;
-        const cuotas = parseInt(document.getElementById("cuotas").value);
-        const esMesProx = document.getElementById("proximoMes").checked;
-        const offset = esMesProx ? 1 : 0;
-
-        let movs = [];
-        if (tipo === "Egreso" && cuotas > 1) {
-          const mC = (monto / cuotas).toFixed(2);
-          for (let i = 0; i < cuotas; i++) {
-            let f = new Date();
-            f.setMonth(f.getMonth() + i + offset);
-            movs.push({
-              mesImputacion: getMesStr(f),
-              tipo,
-              concepto,
-              montoARS: mC,
-              montoUSD: 0,
-              cotizacion: 1,
-              detalleCuota: i + 1 + "/" + cuotas,
-            });
-          }
-        } else {
-          let f = new Date();
-          f.setMonth(f.getMonth() + offset);
-          let mon = document.getElementById("moneda").value;
-          let c = parseFloat(document.getElementById("cotiCarga").value) || 1;
-          let ars = tipo === "Ahorro" && mon === "USD" ? monto * c : monto;
-          let usd = tipo === "Ahorro" && mon === "USD" ? monto : 0;
-          movs.push({
-            mesImputacion: getMesStr(f),
-            tipo,
-            concepto,
-            montoARS: ars,
-            montoUSD: usd,
-            cotizacion: c,
-            detalleCuota: "Única",
-          });
-        }
+        btn.innerText = "Guardando...";
 
         try {
-          await fetch(URL_API, {
+          const res = await fetch(API_URL, {
             method: "POST",
-            body: JSON.stringify({ accion: "registrar", movimientos: movs }),
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              accion: "pagar",
+              empleado: empleado,
+              concepto: concepto,
+              monto: monto,
+              metodo: metodo,
+            }),
           });
-          document.getElementById("toast").style.display = "block";
-          setTimeout(
-            () => (document.getElementById("toast").style.display = "none"),
-            3000,
-          );
+          const data = await res.json();
 
-          // Limpiar campos después de guardar
-          document.getElementById("conceptoIngresado").value = "";
-          document.getElementById("monto").value = "";
-          document.getElementById("metodoPago").value = "Efectivo";
-          document.getElementById("proximoMes").checked = false;
+          if (data.error) alert("Error: " + data.error);
+          else {
+            if (metodo === "Producto del Local")
+              document.getElementById("concepto").value = "";
+            document.getElementById("monto").value = "";
+            mostrarToast("Cobro registrado");
+            await cargarDashboard();
 
-          await fetchDash();
+            if (empleado === "Hernán") {
+              try {
+                const URL_FINANZAS =
+                  "https://script.google.com/macros/s/AKfycbw0pnwxXamVcl2Cg--8tRfBDQaAjCO63UuVHukNvoGJLYqb5YP8bxrNgl2GVSTToxDh/exec";
+                const f = new Date();
+                const mesStr =
+                  f.getFullYear() +
+                  "-" +
+                  String(f.getMonth() + 1).padStart(2, "0");
+                const movs = [
+                  {
+                    mesImputacion: mesStr,
+                    tipo: "Ingreso",
+                    concepto: "FA: " + concepto,
+                    montoARS: monto,
+                    montoUSD: 0,
+                    cotizacion: 1,
+                    detalleCuota: "Única",
+                  },
+                ];
+
+                fetch(URL_FINANZAS, {
+                  method: "POST",
+                  headers: { "Content-Type": "text/plain;charset=utf-8" },
+                  body: JSON.stringify({
+                    accion: "registrar",
+                    movimientos: movs,
+                  }),
+                }).then(() => console.log("Sincronizado con Billetera."));
+              } catch (errFinanzas) {
+                console.error("Error Finanzas: ", errFinanzas);
+              }
+            }
+          }
+        } catch (e) {
+          alert("Error al registrar.");
         } finally {
           btn.disabled = false;
-          btn.innerText = "Guardar Movimiento";
+          btn.innerText = "Registrar Salida";
         }
-      }
-
-      function init() {
-        calcularDiasLaborales();
-        fetchDash();
-        setInterval(fetchDash, 60000);
       }
     </script>
   </body>
