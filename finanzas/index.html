@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Billetera</title>
+    <link rel="icon" type="image/png" href="LOGO-FINANZAS.png" />
+    <link rel="apple-touch-icon" href="LOGO-FINANZAS.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Finanzas" />
+    <link rel="manifest" href="manifest.json" />
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js");
+      }
+    </script>
+    <style>
+      :root {
+        --banana: #ffeb3b;
+        --bg: #121212;
+        --card: #1e1e1e;
+        --text: #eeeeee;
+        --blue: #2979ff;
+      }
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 15px;
+      }
+      .card {
+        background: var(--card);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        border: 1px solid #333;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      }
+      .patrimonio {
+        background: linear-gradient(135deg, #0d47a1, #1976d2);
+        border: none;
+      }
+      h1,
+      h2 {
+        margin: 0;
+        font-size: 20px;
+        color: var(--banana);
+        text-align: center;
+      }
+      .label {
+        font-size: 11px;
+        color: #bbb;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .value {
+        font-size: 28px;
+        font-weight: 800;
+        margin: 4px 0 12px 0;
+      }
+      .negativo {
+        color: #ff5252;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .stat-box {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 12px;
+        border-radius: 12px;
+        text-align: center;
+      }
+      input,
+      select {
+        width: 100%;
+        background: #2c2c2c;
+        border: 1px solid #444;
+        color: #fff;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 16px;
+        margin-top: 8px;
+        box-sizing: border-box;
+      }
+      input:focus {
+        border-color: var(--banana);
+        outline: none;
+      }
+
+      .switch-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 12px;
+        border-radius: 10px;
+        margin-top: 15px;
+        border: 1px dashed #555;
+      }
+      .switch-label {
+        font-size: 14px;
+        color: #ffeb3b;
+        font-weight: bold;
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #444;
+        transition: 0.4s;
+        border-radius: 24px;
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: #00e676;
+      }
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+
+      button {
+        width: 100%;
+        background: var(--banana);
+        color: #000;
+        border: none;
+        padding: 18px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        margin-top: 20px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      button:active {
+        transform: scale(0.96);
+        opacity: 0.8;
+      }
+      #toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #00e676;
+        color: #000;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: bold;
+        display: none;
+        z-index: 1000;
+      }
+
+      /* Estilo para días laborales */
+      .work-days-box {
+        background: rgba(255, 235, 59, 0.05);
+        border: 1px solid rgba(255, 235, 59, 0.2);
+        border-radius: 12px;
+        padding: 10px;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+      .work-days-val {
+        font-size: 14px;
+        font-weight: bold;
+        color: var(--banana);
+        margin-top: 2px;
+      }
+    </style>
+  </head>
+  <body onload="init()">
+    <div id="toast">¡Guardado con éxito! ✅</div>
+
+    <header style="margin-bottom: 20px; text-align: center">
+      <img
+        src="LOGO-FINANZAS.png"
+        alt="Logo Finanzas"
+        style="width: 80px; margin-bottom: 10px"
+      />
+      <h1>SISTEMA FINANCIERO</h1>
+    </header>
+
+    <div class="card patrimonio">
+      <div class="label" style="color: #bbdefb">Patrimonio Total</div>
+      <div class="grid" style="margin-top: 10px">
+        <div>
+          <div class="label" style="color: #90caf9">Dólares</div>
+          <div class="value" id="h_usd">U$D 0</div>
+        </div>
+        <div>
+          <div class="label" style="color: #90caf9">Pesos</div>
+          <div class="value" id="h_ars">$ 0</div>
+        </div>
+      </div>
+      <div
+        style="
+          border-top: 1px solid rgba(255, 255, 255, 0.2);
+          padding-top: 15px;
+        "
+      >
+        <input
+          type="number"
+          id="cotiSim"
+          placeholder="Coti hoy (ej: 1150)"
+          oninput="simular()"
+        />
+        <div
+          id="resSim"
+          style="
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: 10px;
+            color: #00e676;
+          "
+        >
+          Total en pesos: $ 0
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="work-days-box">
+        <div class="label" style="font-size: 9px">Días Laborales (Lun-Sáb)</div>
+        <div id="displayDias" class="work-days-val">Cargando días...</div>
+      </div>
+
+      <div class="label" id="tituloMes">Saldo Mes Actual</div>
+      <div class="value" id="m_saldo">$ 0.00</div>
+      <div class="grid">
+        <div class="stat-box" style="border-left: 4px solid #00e676">
+          <div class="label">Ingresos</div>
+          <div id="m_ing">$ 0</div>
+        </div>
+        <div class="stat-box" style="border-left: 4px solid #ff5252">
+          <div class="label">Gastos</div>
+          <div id="m_egr">$ 0</div>
+        </div>
+      </div>
+      <div
+        class="stat-box"
+        style="margin-top: 12px; border-top: 2px solid var(--banana)"
+      >
+        <div class="label">Proyectado Mes Próximo</div>
+        <div
+          id="m_proy"
+          style="font-weight: bold; color: var(--banana); font-size: 18px"
+        >
+          $ 0
+        </div>
+      </div>
+      <button
+        onclick="fetchDash()"
+        style="
+          background: #333;
+          color: #fff;
+          padding: 10px;
+          margin-top: 15px;
+          font-size: 12px;
+          border-radius: 8px;
+        "
+      >
+        🔄 Sincronizar
+      </button>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size: 18px; margin-bottom: 10px">Nuevo Movimiento</h2>
+      <select id="tipo" onchange="toggleInputs()">
+        <option value="Egreso">Egreso (Gasto)</option>
+        <option value="Ingreso">Ingreso</option>
+        <option value="Ahorro">Ahorro</option>
+      </select>
+
+      <input
+        type="text"
+        id="conceptoIngresado"
+        placeholder="Concepto (ej: Pago Tarjeta)"
+      />
+
+      <select id="metodoPago">
+        <option value="Efectivo">💵 Efectivo</option>
+        <option value="Mercado Pago">📱 Mercado Pago</option>
+      </select>
+
+      <div id="boxAhorro" style="display: none">
+        <select id="moneda" onchange="toggleInputs()">
+          <option value="ARS">Pesos</option>
+          <option value="USD">Dólares</option>
+        </select>
+        <input
+          type="number"
+          id="cotiCarga"
+          placeholder="Cotización compra"
+          style="display: none"
+        />
+      </div>
+
+      <input type="number" id="monto" placeholder="Monto" />
+
+      <div id="boxCuotas">
+        <label class="label">Cuotas:</label>
+        <select id="cuotas">
+          <option value="1">1 solo pago</option>
+          <script>
+            for (let i = 2; i <= 24; i++)
+              document.write(`<option value="${i}">${i} cuotas</option>`);
+          </script>
+        </select>
+
+        <div class="switch-container">
+          <span class="switch-label">💳 ¿Mes que viene? (Tarjeta)</span>
+          <label class="switch">
+            <input type="checkbox" id="proximoMes" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <button id="btnSave" onclick="save()">Guardar en la Nube</button>
+    </div>
+
+    <script>
+      const URL_API =
+        "https://script.google.com/macros/s/AKfycbw0pnwxXamVcl2Cg--8tRfBDQaAjCO63UuVHukNvoGJLYqb5YP8bxrNgl2GVSTToxDh/exec";
+      let totalUSD = 0;
+
+      function obtenerFeriados2026() {
+        return [
+          "2026-01-01",
+          "2026-02-16",
+          "2026-02-17",
+          "2026-03-24",
+          "2026-04-02",
+          "2026-04-03",
+          "2026-05-01",
+          "2026-05-25",
+          "2026-06-15",
+          "2026-06-20",
+          "2026-07-09",
+          "2026-08-17",
+          "2026-10-12",
+          "2026-11-23",
+          "2026-12-08",
+          "2026-12-25",
+        ];
+      }
+
+      function calcularDiasLaborales() {
+        const ahora = new Date();
+        const anio = ahora.getFullYear();
+        const mes = ahora.getMonth();
+        const feriados = obtenerFeriados2026();
+
+        let totales = 0;
+        let pasados = 0;
+        const ultimoDia = new Date(anio, mes + 1, 0).getDate();
+        const hoy = ahora.getDate();
+
+        for (let d = 1; d <= ultimoDia; d++) {
+          const fecha = new Date(anio, mes, d);
+          const diaSemana = fecha.getDay(); // 0 = Domingo
+          const fechaStr =
+            anio +
+            "-" +
+            String(mes + 1).padStart(2, "0") +
+            "-" +
+            String(d).padStart(2, "0");
+
+          // Si no es domingo (0) y no es feriado
+          if (diaSemana !== 0 && !feriados.includes(fechaStr)) {
+            totales++;
+            if (d <= hoy) pasados++;
+          }
+        }
+        document.getElementById("displayDias").innerText =
+          `Días: ${pasados} / ${totales}`;
+      }
+
+      function toggleInputs() {
+        const t = document.getElementById("tipo").value;
+        const m = document.getElementById("moneda").value;
+        document.getElementById("boxAhorro").style.display =
+          t === "Ahorro" ? "block" : "none";
+        document.getElementById("boxCuotas").style.display =
+          t === "Egreso" ? "block" : "none";
+        document.getElementById("boxCoti").style.display =
+          t === "Ahorro" && m === "USD" ? "block" : "none";
+      }
+
+      function simular() {
+        const c = parseFloat(document.getElementById("cotiSim").value) || 0;
+        document.getElementById("resSim").innerText =
+          "Total en pesos: $ " + (totalUSD * c).toLocaleString("es-AR");
+      }
+
+      function getMesStr(fecha) {
+        return (
+          fecha.getFullYear() +
+          "-" +
+          String(fecha.getMonth() + 1).padStart(2, "0")
+        );
+      }
+
+      async function fetchDash() {
+        try {
+          calcularDiasLaborales(); // Actualizar días al sincronizar
+          const mesAct = getMesStr(new Date());
+          const mesProx = getMesStr(
+            new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+          );
+          const res = await fetch(URL_API, {
+            method: "POST",
+            body: JSON.stringify({
+              accion: "dashboard",
+              mesActual: mesAct,
+              mesProximo: mesProx,
+            }),
+          });
+          const d = await res.json();
+          totalUSD = d.h_usd;
+          document.getElementById("h_usd").innerText =
+            "U$D " + d.h_usd.toLocaleString("es-AR");
+          document.getElementById("h_ars").innerText =
+            "$ " + d.h_ars.toLocaleString("es-AR");
+          const sEl = document.getElementById("m_saldo");
+          sEl.innerText =
+            (d.m_saldo < 0 ? "- " : "") +
+            "$ " +
+            Math.abs(d.m_saldo).toLocaleString("es-AR");
+          sEl.className = "value " + (d.m_saldo < 0 ? "negativo" : "");
+          document.getElementById("m_ing").innerText =
+            "$ " + d.m_ing.toLocaleString("es-AR");
+          document.getElementById("m_egr").innerText =
+            "$ " + d.m_egr.toLocaleString("es-AR");
+          document.getElementById("m_proy").innerText =
+            "$ " + d.m_proy.toLocaleString("es-AR");
+          document.getElementById("tituloMes").innerText =
+            "Saldo Mes: " + mesAct;
+          simular();
+        } catch (e) {
+          console.error("Error sincronización");
+        }
+      }
+
+      async function save() {
+        const btn = document.getElementById("btnSave");
+        const conceptoBase = document.getElementById("conceptoIngresado").value;
+        const metodoPago = document.getElementById("metodoPago").value;
+        const monto = parseFloat(document.getElementById("monto").value);
+
+        if (!conceptoBase || isNaN(monto)) return alert("Faltan datos");
+
+        // Concatenamos el concepto con el método de pago para no modificar la base de datos
+        const concepto = conceptoBase + " (" + metodoPago + ")";
+
+        btn.disabled = true;
+        btn.innerText = "Procesando...";
+        const tipo = document.getElementById("tipo").value;
+        const cuotas = parseInt(document.getElementById("cuotas").value);
+        const esMesProx = document.getElementById("proximoMes").checked;
+        const offset = esMesProx ? 1 : 0;
+
+        let movs = [];
+        if (tipo === "Egreso" && cuotas > 1) {
+          const mC = (monto / cuotas).toFixed(2);
+          for (let i = 0; i < cuotas; i++) {
+            let f = new Date();
+            f.setMonth(f.getMonth() + i + offset);
+            movs.push({
+              mesImputacion: getMesStr(f),
+              tipo,
+              concepto,
+              montoARS: mC,
+              montoUSD: 0,
+              cotizacion: 1,
+              detalleCuota: i + 1 + "/" + cuotas,
+            });
+          }
+        } else {
+          let f = new Date();
+          f.setMonth(f.getMonth() + offset);
+          let mon = document.getElementById("moneda").value;
+          let c = parseFloat(document.getElementById("cotiCarga").value) || 1;
+          let ars = tipo === "Ahorro" && mon === "USD" ? monto * c : monto;
+          let usd = tipo === "Ahorro" && mon === "USD" ? monto : 0;
+          movs.push({
+            mesImputacion: getMesStr(f),
+            tipo,
+            concepto,
+            montoARS: ars,
+            montoUSD: usd,
+            cotizacion: c,
+            detalleCuota: "Única",
+          });
+        }
+
+        try {
+          await fetch(URL_API, {
+            method: "POST",
+            body: JSON.stringify({ accion: "registrar", movimientos: movs }),
+          });
+          document.getElementById("toast").style.display = "block";
+          setTimeout(
+            () => (document.getElementById("toast").style.display = "none"),
+            3000,
+          );
+
+          // Limpiar campos después de guardar
+          document.getElementById("conceptoIngresado").value = "";
+          document.getElementById("monto").value = "";
+          document.getElementById("metodoPago").value = "Efectivo";
+          document.getElementById("proximoMes").checked = false;
+
+          await fetchDash();
+        } finally {
+          btn.disabled = false;
+          btn.innerText = "Guardar Movimiento";
+        }
+      }
+
+      function init() {
+        calcularDiasLaborales();
+        fetchDash();
+        setInterval(fetchDash, 60000);
+      }
+    </script>
+  </body>
+</html>
