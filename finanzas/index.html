@@ -340,6 +340,14 @@
             $ 0
           </div>
         </div>
+
+        <div id="boxProximosPagos" style="margin-top: 15px; border-top: 1px dashed #555; padding-top: 15px;">
+          <div class="label" style="color: #ffeb3b; margin-bottom: 10px; text-align: left;">📋 Detalle Próximo Mes (Tarjeta/Cuotas)</div>
+          <div id="listaProximosPagos" style="font-size: 14px; text-align: left;">
+            <span style="color: #888; font-size: 12px;">Cargando detalles...</span>
+          </div>
+        </div>
+
         <button
           onclick="fetchDash()"
           style="
@@ -559,7 +567,6 @@
           document.getElementById("h_ars").innerText =
             "$ " + d.h_ars.toLocaleString("es-AR");
 
-          // MOSTRAR VALORES DE EFECTIVO Y MERCADO PAGO
           document.getElementById("h_efectivo").innerText =
             "$ " + (d.h_efectivo || 0).toLocaleString("es-AR");
           document.getElementById("h_mp").innerText =
@@ -579,6 +586,24 @@
             "$ " + d.m_proy.toLocaleString("es-AR");
           document.getElementById("tituloMes").innerText =
             "Saldo Mes: " + mesAct;
+
+          const listaPagos = document.getElementById("listaProximosPagos");
+          if (d.proximos_pagos && d.proximos_pagos.length > 0) {
+            listaPagos.innerHTML = d.proximos_pagos.map(p => `
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 6px 0;">
+                <div>
+                  <span style="color: #eee;">${p.concepto}</span>
+                  <span style="color: #888; font-size: 11px; margin-left: 5px;">(${p.detalleCuota})</span>
+                </div>
+                <div style="color: #ff5252; font-weight: bold;">
+                  $ ${p.monto.toLocaleString("es-AR")}
+                </div>
+              </div>
+            `).join('');
+          } else {
+            listaPagos.innerHTML = `<span style="color: #00e676; font-size: 12px;">✔️ Sin pagos programados</span>`;
+          }
+
           simular();
         } catch (e) {
           console.error("Error sincronización");
@@ -609,7 +634,7 @@
               mesImputacion: getMesStr(f),
               tipo,
               concepto,
-              metodoPago, // Dato aislado enviado a la base de datos
+              metodoPago, 
               montoARS: mC,
               montoUSD: 0,
               cotizacion: 1,
@@ -627,7 +652,7 @@
             mesImputacion: getMesStr(f),
             tipo,
             concepto,
-            metodoPago, // Dato aislado enviado a la base de datos
+            metodoPago, 
             montoARS: ars,
             montoUSD: usd,
             cotizacion: c,
