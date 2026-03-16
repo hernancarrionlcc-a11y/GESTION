@@ -428,6 +428,18 @@
           </div>
         </div>
         <button id="btnSave" onclick="save()">Guardar en la Nube</button>
+        <button
+          id="btnUndo"
+          onclick="deshacerUltimo()"
+          style="
+            background: transparent;
+            border: 1px solid #ff5252;
+            color: #ff5252;
+            margin-top: 10px;
+          "
+        >
+          ↩️ Deshacer Último Movimiento
+        </button>
       </div>
 
       <button
@@ -583,7 +595,6 @@
             "U$D " + d.h_usd.toLocaleString("es-AR");
           document.getElementById("h_ars").innerText =
             "$ " + d.h_ars.toLocaleString("es-AR");
-
           document.getElementById("h_efectivo").innerText =
             "$ " + (d.h_efectivo || 0).toLocaleString("es-AR");
           document.getElementById("h_mp").innerText =
@@ -698,6 +709,50 @@
         } finally {
           btn.disabled = false;
           btn.innerText = "Guardar Movimiento";
+        }
+      }
+
+      async function deshacerUltimo() {
+        if (
+          !confirm(
+            "¿Estás seguro de que querés borrar el último movimiento que cargaste?",
+          )
+        )
+          return;
+
+        const btn = document.getElementById("btnUndo");
+        btn.innerText = "Borrando...";
+        btn.disabled = true;
+
+        try {
+          const res = await fetch(URL_API, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ accion: "deshacer" }),
+          });
+          const data = await res.json();
+
+          if (data.exito) {
+            const toast = document.getElementById("toast");
+            toast.innerText = "🗑️ Movimiento eliminado";
+            toast.style.background = "#ff5252";
+            toast.style.display = "block";
+
+            setTimeout(() => {
+              toast.style.display = "none";
+              toast.style.background = "#00e676";
+              toast.innerText = "¡Guardado con éxito! ✅";
+            }, 3000);
+
+            await fetchDash();
+          } else {
+            alert("No se pudo borrar: " + data.error);
+          }
+        } catch (e) {
+          alert("Error de conexión al intentar borrar.");
+        } finally {
+          btn.innerText = "↩️ Deshacer Último Movimiento";
+          btn.disabled = false;
         }
       }
 
