@@ -95,7 +95,6 @@
         border-color: var(--banana);
         outline: none;
       }
-
       .switch-container {
         display: flex;
         align-items: center;
@@ -150,7 +149,6 @@
       input:checked + .slider:before {
         transform: translateX(20px);
       }
-
       button {
         width: 100%;
         background: var(--banana);
@@ -355,6 +353,26 @@
           >
             📋 Detalle Próximo Mes (Tarjeta/Cuotas)
           </div>
+
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 2fr 1fr 1fr;
+              gap: 6px;
+              border-bottom: 1px solid #555;
+              padding-bottom: 6px;
+              margin-bottom: 6px;
+              font-size: 11px;
+              color: #bbb;
+              font-weight: bold;
+              text-transform: uppercase;
+            "
+          >
+            <div>Concepto</div>
+            <div style="text-align: center">Monto</div>
+            <div style="text-align: right">Cuota</div>
+          </div>
+
           <div
             id="listaProximosPagos"
             style="font-size: 14px; text-align: left"
@@ -458,7 +476,7 @@
 
     <script>
       const URL_API =
-        "https://script.google.com/macros/s/AKfycbw0pnwxXamVcl2Cg--8tRfBDQaAjCO63UuVHukNvoGJLYqb5YP8bxrNgl2GVSTToxDh/exec";
+        "https://script.google.com/macros/s/AKfycbzgSJ8B0kSKyjXOLwph_NP3z8MK1gS487H8FvuvyKhaKpO1YsYh0havNJh5xY0af8Vn/exec";
       let totalUSD = 0;
 
       function verificarSesion() {
@@ -472,7 +490,6 @@
       async function iniciarSesion() {
         const pin = document.getElementById("loginPin").value;
         if (!pin) return;
-
         try {
           const res = await fetch(URL_API, {
             method: "POST",
@@ -480,7 +497,6 @@
             body: JSON.stringify({ accion: "login", clave: pin }),
           });
           const data = await res.json();
-
           if (data.exito) {
             localStorage.setItem("sesionFinanzas", "activa");
             verificarSesion();
@@ -524,8 +540,8 @@
         const anio = ahora.getFullYear();
         const mes = ahora.getMonth();
         const feriados = obtenerFeriados2026();
-        let totales = 0;
-        let pasados = 0;
+        let totales = 0,
+          pasados = 0;
         const ultimoDia = new Date(anio, mes + 1, 0).getDate();
         const hoy = ahora.getDate();
         for (let d = 1; d <= ultimoDia; d++) {
@@ -620,14 +636,10 @@
             listaPagos.innerHTML = d.proximos_pagos
               .map(
                 (p) => `
-              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 6px 0;">
-                <div>
-                  <span style="color: #eee;">${p.concepto}</span>
-                  <span style="color: #888; font-size: 11px; margin-left: 5px;">(${p.detalleCuota})</span>
-                </div>
-                <div style="color: #ff5252; font-weight: bold;">
-                  $ ${p.monto.toLocaleString("es-AR")}
-                </div>
+              <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px; border-bottom: 1px solid #333; padding: 10px 0; align-items: center;">
+                <div style="color: #eee; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${p.concepto}">${p.concepto}</div>
+                <div style="color: #ff5252; font-weight: bold; font-size: 13px; text-align: center;">$ ${p.monto.toLocaleString("es-AR")}</div>
+                <div style="color: #888; font-size: 13px; text-align: right; font-weight: bold;">${p.detalleCuota}</div>
               </div>
             `,
               )
@@ -688,7 +700,7 @@
             montoARS: ars,
             montoUSD: usd,
             cotizacion: c,
-            detalleCuota: "Única",
+            detalleCuota: "1",
           });
         }
         try {
@@ -737,13 +749,11 @@
             toast.innerText = "🗑️ Movimiento eliminado";
             toast.style.background = "#ff5252";
             toast.style.display = "block";
-
             setTimeout(() => {
               toast.style.display = "none";
               toast.style.background = "#00e676";
               toast.innerText = "¡Guardado con éxito! ✅";
             }, 3000);
-
             await fetchDash();
           } else {
             alert("No se pudo borrar: " + data.error);
