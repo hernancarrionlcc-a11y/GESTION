@@ -341,10 +341,27 @@
           </div>
         </div>
 
-        <div id="boxProximosPagos" style="margin-top: 15px; border-top: 1px dashed #555; padding-top: 15px;">
-          <div class="label" style="color: #ffeb3b; margin-bottom: 10px; text-align: left;">📋 Detalle Próximo Mes (Tarjeta/Cuotas)</div>
-          <div id="listaProximosPagos" style="font-size: 14px; text-align: left;">
-            <span style="color: #888; font-size: 12px;">Cargando detalles...</span>
+        <div
+          id="boxProximosPagos"
+          style="
+            margin-top: 15px;
+            border-top: 1px dashed #555;
+            padding-top: 15px;
+          "
+        >
+          <div
+            class="label"
+            style="color: #ffeb3b; margin-bottom: 10px; text-align: left"
+          >
+            📋 Detalle Próximo Mes (Tarjeta/Cuotas)
+          </div>
+          <div
+            id="listaProximosPagos"
+            style="font-size: 14px; text-align: left"
+          >
+            <span style="color: #888; font-size: 12px"
+              >Cargando detalles...</span
+            >
           </div>
         </div>
 
@@ -589,7 +606,9 @@
 
           const listaPagos = document.getElementById("listaProximosPagos");
           if (d.proximos_pagos && d.proximos_pagos.length > 0) {
-            listaPagos.innerHTML = d.proximos_pagos.map(p => `
+            listaPagos.innerHTML = d.proximos_pagos
+              .map(
+                (p) => `
               <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 6px 0;">
                 <div>
                   <span style="color: #eee;">${p.concepto}</span>
@@ -599,7 +618,9 @@
                   $ ${p.monto.toLocaleString("es-AR")}
                 </div>
               </div>
-            `).join('');
+            `,
+              )
+              .join("");
           } else {
             listaPagos.innerHTML = `<span style="color: #00e676; font-size: 12px;">✔️ Sin pagos programados</span>`;
           }
@@ -634,7 +655,7 @@
               mesImputacion: getMesStr(f),
               tipo,
               concepto,
-              metodoPago, 
+              metodoPago,
               montoARS: mC,
               montoUSD: 0,
               cotizacion: 1,
@@ -652,7 +673,7 @@
             mesImputacion: getMesStr(f),
             tipo,
             concepto,
-            metodoPago, 
+            metodoPago,
             montoARS: ars,
             montoUSD: usd,
             cotizacion: c,
