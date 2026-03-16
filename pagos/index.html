@@ -417,7 +417,7 @@
 
           if (data.exito) {
             localStorage.setItem("usuarioFA", usuario);
-            verificarSesion(); // Carga el dashboard y oculta el login
+            verificarSesion();
           } else {
             alert("PIN Incorrecto ❌");
             document.getElementById("loginPin").value = "";
@@ -590,11 +590,16 @@
                   f.getFullYear() +
                   "-" +
                   String(f.getMonth() + 1).padStart(2, "0");
+                  
+                let metodoFinanzas = "Efectivo"; 
+                if (metodo === "Mercado Pago") metodoFinanzas = "Mercado Pago";
+
                 const movs = [
                   {
                     mesImputacion: mesStr,
                     tipo: "Ingreso",
                     concepto: "FA: " + concepto,
+                    metodoPago: metodoFinanzas,
                     montoARS: monto,
                     montoUSD: 0,
                     cotizacion: 1,
@@ -602,14 +607,15 @@
                   },
                 ];
 
-                fetch(URL_FINANZAS, {
+                await fetch(URL_FINANZAS, {
                   method: "POST",
                   headers: { "Content-Type": "text/plain;charset=utf-8" },
                   body: JSON.stringify({
                     accion: "registrar",
                     movimientos: movs,
                   }),
-                }).then(() => console.log("Sincronizado con Billetera."));
+                });
+                console.log("Sincronizado exitosamente con Billetera Finanzas.");
               } catch (errFinanzas) {
                 console.error("Error Finanzas: ", errFinanzas);
               }
