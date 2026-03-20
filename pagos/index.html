@@ -284,6 +284,11 @@
       </div>
 
       <div class="card" style="border-top: none">
+        <label>Turno de Trabajo:</label>
+        <select id="turnoTrabajo" style="margin-bottom: 15px">
+          <option value="Mañana">☀️ Mañana</option>
+          <option value="Tarde">🌇 Tarde</option>
+        </select>
         <button id="btnPresente" class="btn-presente" onclick="darPresente()">
           ✋ Registrar Ingreso (Hoy)
         </button>
@@ -450,8 +455,10 @@
         }
       }
 
+      // FUNCIÓN ACTUALIZADA CON TURNO
       async function darPresente() {
         const empleado = document.getElementById("empleadoActivo").value;
+        const turno = document.getElementById("turnoTrabajo").value; // Captura el turno
         const btn = document.getElementById("btnPresente");
         btn.disabled = true;
         btn.innerText = "Registrando...";
@@ -459,12 +466,17 @@
           const res = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ accion: "presente", empleado: empleado }),
+            // Envía el turno al backend
+            body: JSON.stringify({
+              accion: "presente",
+              empleado: empleado,
+              turno: turno,
+            }),
           });
           const data = await res.json();
           if (data.error) alert(data.error);
           else {
-            mostrarToast("Ingreso: " + data.hora);
+            mostrarToast("Ingreso: " + data.hora + " (" + turno + ")"); // Muestra el turno en el toast
             await cargarDashboard();
           }
         } catch (e) {
@@ -590,8 +602,8 @@
                   f.getFullYear() +
                   "-" +
                   String(f.getMonth() + 1).padStart(2, "0");
-                  
-                let metodoFinanzas = "Efectivo"; 
+
+                let metodoFinanzas = "Efectivo";
                 if (metodo === "Mercado Pago") metodoFinanzas = "Mercado Pago";
 
                 const movs = [
@@ -615,7 +627,9 @@
                     movimientos: movs,
                   }),
                 });
-                console.log("Sincronizado exitosamente con Billetera Finanzas.");
+                console.log(
+                  "Sincronizado exitosamente con Billetera Finanzas.",
+                );
               } catch (errFinanzas) {
                 console.error("Error Finanzas: ", errFinanzas);
               }
